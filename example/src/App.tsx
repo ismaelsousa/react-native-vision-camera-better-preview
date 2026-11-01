@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react';
+import { useMemo, useRef, useState, type ReactNode } from 'react';
 import {
   FlatList,
   Modal,
@@ -20,6 +20,7 @@ import {
   type Size,
   type PreviewView,
 } from 'react-native-vision-camera';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { callback } from 'react-native-nitro-modules';
 import {
   createPreviewOutput,
@@ -99,25 +100,34 @@ interface PreviewScreenProps {
   onBack: () => void;
 }
 
-function PreviewOverlay({
+function PreviewLayout({
   title,
   description,
   onBack,
+  controls,
+  children,
 }: {
   title: string;
   description: string;
   onBack: () => void;
+  controls: ReactNode;
+  children: ReactNode;
 }) {
   return (
-    <>
-      <Pressable style={styles.backButton} onPress={onBack}>
-        <Text style={styles.backButtonText}>Back</Text>
-      </Pressable>
+    <SafeAreaView style={styles.previewContainer}>
+      <View style={styles.header}>
+        <Pressable style={styles.backButton} onPress={onBack}>
+          <Text style={styles.backButtonText}>Back</Text>
+        </Pressable>
+        <View style={styles.controls}>{controls}</View>
+      </View>
+      {/* The preview and its dots share this area, so view coordinates match. */}
+      <View style={styles.previewArea}>{children}</View>
       <View pointerEvents="none" style={styles.badge}>
         <Text style={styles.badgeTitle}>{title}</Text>
         <Text style={styles.badgeText}>{description}</Text>
       </View>
-    </>
+    </SafeAreaView>
   );
 }
 
@@ -146,7 +156,23 @@ function VisionCameraPreviewScreen({ device, onBack }: PreviewScreenProps) {
   );
 
   return (
-    <View style={styles.previewContainer}>
+    <PreviewLayout
+      title="VisionCamera preview"
+      description="The standard preview managed by the Camera component. The stock preview picks its own resolution; the modal sets the frame output's."
+      onBack={onBack}
+      controls={
+        <>
+          <ControlButton
+            label={`Frame processor: ${frameProcessorEnabled ? 'ON' : 'OFF'}`}
+            onPress={() => setFrameProcessorEnabled((value) => !value)}
+          />
+          <ControlButton
+            label={`Frame resolution: ${resolution.option.label}`}
+            onPress={() => resolution.setVisible(true)}
+          />
+        </>
+      }
+    >
       <Camera
         ref={camera}
         device={device}
@@ -158,16 +184,6 @@ function VisionCameraPreviewScreen({ device, onBack }: PreviewScreenProps) {
         onLayout={corners.refresh}
       />
       {frameProcessorEnabled && <FrameCornersInfo {...corners} />}
-      <View style={styles.controls}>
-        <ControlButton
-          label={`Frame processor: ${frameProcessorEnabled ? 'ON' : 'OFF'}`}
-          onPress={() => setFrameProcessorEnabled((value) => !value)}
-        />
-        <ControlButton
-          label={`Frame resolution: ${resolution.option.label}`}
-          onPress={() => resolution.setVisible(true)}
-        />
-      </View>
       <ResolutionModal
         visible={resolution.visible}
         title="Frame resolution"
@@ -175,12 +191,7 @@ function VisionCameraPreviewScreen({ device, onBack }: PreviewScreenProps) {
         onSelect={resolution.setLabel}
         onClose={() => resolution.setVisible(false)}
       />
-      <PreviewOverlay
-        title="VisionCamera preview"
-        description="The standard preview managed by the Camera component. The stock preview picks its own resolution; the modal sets the frame output's."
-        onBack={onBack}
-      />
-    </View>
+    </PreviewLayout>
   );
 }
 
@@ -225,7 +236,27 @@ function BetterPreviewScreen({ device, onBack }: PreviewScreenProps) {
       : `Native output: ${uprightResolution.width} × ${uprightResolution.height}`;
 
   return (
-    <View style={styles.previewContainer}>
+    <PreviewLayout
+      title="Better Preview"
+      description={resolutionLabel}
+      onBack={onBack}
+      controls={
+        <>
+          <ControlButton
+            label={`Frame processor: ${frameProcessorEnabled ? 'ON' : 'OFF'}`}
+            onPress={() => setFrameProcessorEnabled((value) => !value)}
+          />
+          <ControlButton
+            label={`Preview resolution: ${previewOption.label}`}
+            onPress={() => previewResolution.setVisible(true)}
+          />
+          <ControlButton
+            label={`Frame resolution: ${frameResolution.option.label}`}
+            onPress={() => frameResolution.setVisible(true)}
+          />
+        </>
+      }
+    >
       <NativePreviewView
         previewOutput={previewOutput}
         style={StyleSheet.absoluteFill}
@@ -234,20 +265,6 @@ function BetterPreviewScreen({ device, onBack }: PreviewScreenProps) {
         onLayout={corners.refresh}
       />
       {frameProcessorEnabled && <FrameCornersInfo {...corners} />}
-      <View style={styles.controls}>
-        <ControlButton
-          label={`Frame processor: ${frameProcessorEnabled ? 'ON' : 'OFF'}`}
-          onPress={() => setFrameProcessorEnabled((value) => !value)}
-        />
-        <ControlButton
-          label={`Preview resolution: ${previewOption.label}`}
-          onPress={() => previewResolution.setVisible(true)}
-        />
-        <ControlButton
-          label={`Frame resolution: ${frameResolution.option.label}`}
-          onPress={() => frameResolution.setVisible(true)}
-        />
-      </View>
       <ResolutionModal
         title="Preview resolution"
         visible={previewResolution.visible}
@@ -265,12 +282,7 @@ function BetterPreviewScreen({ device, onBack }: PreviewScreenProps) {
         onSelect={frameResolution.setLabel}
         onClose={() => frameResolution.setVisible(false)}
       />
-      <PreviewOverlay
-        title="Better Preview"
-        description={resolutionLabel}
-        onBack={onBack}
-      />
-    </View>
+    </PreviewLayout>
   );
 }
 
@@ -307,7 +319,7 @@ function RoutePicker({ onSelect }: { onSelect: (route: Route) => void }) {
   );
 }
 
-export default function App() {
+function AppContent() {
   const [route, setRoute] = useState<Route>('home');
   const device = useCameraDevice('back');
   const { hasPermission, canRequestPermission, requestPermission } =
@@ -360,6 +372,14 @@ export default function App() {
   }
 
   return <RoutePicker onSelect={setRoute} />;
+}
+
+export default function App() {
+  return (
+    <SafeAreaProvider>
+      <AppContent />
+    </SafeAreaProvider>
+  );
 }
 
 const styles = StyleSheet.create({
@@ -427,10 +447,19 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 20,
   },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: 12,
+    paddingTop: 12,
+    paddingHorizontal: 20,
+    paddingBottom: 12,
+  },
+  previewArea: {
+    flex: 1,
+  },
   backButton: {
-    position: 'absolute',
-    top: 52,
-    left: 20,
     borderRadius: 999,
     backgroundColor: 'rgba(10, 10, 12, 0.78)',
     paddingHorizontal: 18,
@@ -442,9 +471,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   controls: {
-    position: 'absolute',
-    top: 52,
-    right: 20,
+    flex: 1,
     alignItems: 'flex-end',
     gap: 8,
   },
@@ -497,10 +524,9 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   badge: {
-    position: 'absolute',
-    left: 20,
-    right: 20,
-    bottom: 40,
+    marginHorizontal: 20,
+    marginTop: 12,
+    marginBottom: 12,
     borderRadius: 16,
     backgroundColor: 'rgba(10, 10, 12, 0.78)',
     padding: 16,

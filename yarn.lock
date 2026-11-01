@@ -7142,6 +7142,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-native-safe-area-context@npm:^5.11.0":
+  version: 5.11.0
+  resolution: "react-native-safe-area-context@npm:5.11.0"
+  peerDependencies:
+    react: "*"
+    react-native: "*"
+  checksum: 10c0/b36141e17a5cf307a2eb1720b65c161035ac13e0c2e62bdac4dc2639346e9721649f9ae8c0e7a66a8f525cb1c580b3ea73f892167a97df8fea6cd80212703e00
+  languageName: node
+  linkType: hard
+
 "react-native-vision-camera-better-preview-example@workspace:example":
   version: 0.0.0-use.local
   resolution: "react-native-vision-camera-better-preview-example@workspace:example"
@@ -7164,6 +7174,7 @@ __metadata:
     react-native-nitro-image: "npm:0.15.2"
     react-native-nitro-modules: "npm:^0.37.1"
     react-native-reanimated: "npm:4.7.1"
+    react-native-safe-area-context: "npm:^5.11.0"
     react-native-vision-camera: "npm:5.2.4"
     react-native-vision-camera-worklets: "npm:5.2.4"
     react-native-worklets: "npm:0.13.1"
