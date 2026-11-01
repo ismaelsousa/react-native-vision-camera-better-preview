@@ -146,8 +146,12 @@ const previewOutput = createPreviewOutput({
   targetResolution: { width: 1920, height: 1080 },
   onConfigurationChanged: (configuration) => {
     const resolution = getUprightPreviewResolution(configuration);
+    const aspectRatio = resolution
+      ? resolution.width / resolution.height
+      : undefined;
 
     console.log('Preview resolution:', resolution);
+    console.log('Preview aspect ratio:', aspectRatio);
     console.log('Preview rotation:', configuration.rotationDegrees);
   },
 });
