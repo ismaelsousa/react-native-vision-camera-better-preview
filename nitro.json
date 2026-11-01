@@ -1,0 +1,23 @@
+{
+  "cxxNamespace": ["visioncamerabetterpreview"],
+  "ios": {
+    "iosModuleName": "VisionCameraBetterPreview"
+  },
+  "android": {
+    "androidNamespace": ["visioncamerabetterpreview"],
+    "androidCxxLibName": "visioncamerabetterpreview"
+  },
+  "autolinking": {
+    "VisionCameraBetterPreview": {
+      "ios": {
+        "language": "swift",
+        "implementationClassName": "VisionCameraBetterPreview"
+      },
+      "android": {
+        "language": "kotlin",
+        "implementationClassName": "VisionCameraBetterPreview"
+      }
+    }
+  },
+  "ignorePaths": ["node_modules"]
+}
