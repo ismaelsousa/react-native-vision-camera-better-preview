@@ -52,8 +52,19 @@ preview with the frame and video outputs instead: set the preview to the same
 aspect ratio as the output you care about.
 
 iOS is less affected. There, every output is derived from the active format
-selected on the capture device, so the outputs are already aligned. The custom
-preview output keeps that behavior, and adds the same control on Android.
+selected on the capture device, so the outputs are already aligned. VisionCamera
+also sets `automaticallyConfiguresOutputBufferDimensions` to `false` on its
+frame outputs, so the frame buffers keep the dimensions of the active format
+instead of being resized automatically.
+
+With the stock `Camera` component on iOS, the output target resolutions are
+used to filter the available formats and pick the active one. You can therefore
+leave the target resolution out, or steer the choice with a `resolutionBias`
+constraint. Android ignores `resolutionBias`, which is why the preview cannot
+be steered there without this library.
+
+The custom preview output keeps the iOS behavior and adds the same control on
+Android.
 
 ### Knowing the exact preview size for layout
 
