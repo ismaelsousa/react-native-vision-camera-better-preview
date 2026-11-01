@@ -8,14 +8,14 @@
     "androidCxxLibName": "visioncamerabetterpreview"
   },
   "autolinking": {
-    "VisionCameraBetterPreview": {
+    "VisionCameraBetterPreviewFactory": {
       "ios": {
         "language": "swift",
-        "implementationClassName": "VisionCameraBetterPreview"
+        "implementationClassName": "VisionCameraBetterPreviewFactory"
       },
       "android": {
         "language": "kotlin",
-        "implementationClassName": "VisionCameraBetterPreview"
+        "implementationClassName": "VisionCameraBetterPreviewFactory"
       }
     }
   },

@@ -14,9 +14,11 @@ implemented yet. The repository currently provides:
 - a standard VisionCamera preview to verify the development environment;
 - Nitrogen, TypeScript, ESLint, and library build scripts.
 
-The next implementation step is to define the output factory in
-`src/VisionCameraBetterPreview.nitro.ts`, generate the native bindings, and add
-the native preview output implementations.
+The output factory is defined in
+`src/VisionCameraBetterPreviewFactory.nitro.ts`. Its `createPreviewOutput()`
+method already exposes the intended `CameraOutput` return type, while the native
+method currently throws an explicit not-implemented error. The next step is to
+add the native preview output implementations and return them from the factory.
 
 ## Development setup
 

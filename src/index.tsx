@@ -1,1 +1,2 @@
-export type { VisionCameraBetterPreview } from './VisionCameraBetterPreview.nitro';
+export { createPreviewOutput } from './previewOutput';
+export type { VisionCameraBetterPreviewFactory } from './VisionCameraBetterPreviewFactory.nitro';
