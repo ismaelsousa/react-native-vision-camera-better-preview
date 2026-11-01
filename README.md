@@ -68,9 +68,12 @@ Android.
 
 ### Knowing the exact preview size for layout
 
-`onConfigurationChanged` reports the negotiated stream resolution and the
-rotation needed to display it upright. `getUprightPreviewResolution()` applies
-the rotation for you, so you get the size as the user sees it:
+`onConfigurationChanged` reports the negotiated stream resolution and, when
+available, the rotation needed to display it upright. On iOS, rotation is only
+reported on iOS 17 and later; on earlier iOS versions `rotationDegrees` is
+`undefined`. `getUprightPreviewResolution()` applies the reported rotation for
+you, so you get the size as the user sees it when rotation is available. If the
+rotation is unavailable, the helper returns `undefined` rather than guessing:
 
 ```tsx
 const [configuration, setConfiguration] =
@@ -151,9 +154,11 @@ const previewOutput = createPreviewOutput({
 ```
 
 `createPreviewOutput()` returns VisionCamera's `CameraOutput`. The callback
-reports the native stream resolution and, when available, the rotation in
-degrees. `getUprightPreviewResolution()` swaps width and height for quarter-turn
-rotations so layout code can consume the displayed orientation directly.
+reports the native stream resolution in its unrotated orientation and, when
+available, the rotation in degrees. `getUprightPreviewResolution()` swaps width
+and height for quarter-turn rotations so layout code can consume the displayed
+orientation directly. On iOS versions earlier than 17, rotation is unavailable
+and the upright-resolution helper returns `undefined`.
 
 ## Development setup
 

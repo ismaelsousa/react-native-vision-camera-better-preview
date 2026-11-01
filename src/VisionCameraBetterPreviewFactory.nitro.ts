@@ -1,10 +1,18 @@
 import type { HybridObject } from 'react-native-nitro-modules';
 import type { CameraOutput, Size } from 'react-native-vision-camera';
 
-/** The preview stream configuration in its native, unrotated orientation. */
+/**
+ * The preview stream configuration. `resolution` is in the native,
+ * unrotated orientation.
+ */
 export interface BetterPreviewConfiguration {
   readonly resolution: Size;
-  /** Clockwise rotation required to display the stream upright. */
+  /**
+   * Clockwise rotation required to display the stream upright.
+   *
+   * On iOS, this is available only on iOS 17.0 and later. It is `undefined`
+   * on earlier iOS versions.
+   */
   readonly rotationDegrees?: number;
 }
 
