@@ -3,6 +3,106 @@
 A Nitro Module workspace for building a custom native preview output for
 [React Native VisionCamera](https://visioncamera.margelo.com/).
 
+## What it fixes
+
+1. **Aspect ratio mismatch with other outputs on Android.** CameraX gives the
+   stock preview a fixed 4:3 stream while video usually resolves to 16:9. With
+   this output you choose the preview's `targetResolution`, so it can match
+   your frame and video outputs.
+2. **Unknown preview size and rotation.** The native side reports the real
+   preview resolution and rotation through `onConfigurationChanged`, so you
+   know the exact aspect ratio of the preview and can position buttons,
+   overlays and any other UI precisely against it.
+
+## Why a custom preview output?
+
+A camera session usually has more than a preview: a frame output for
+processing, a photo or video output for capture. Every output is a different
+view of the same sensor, and the camera can only deliver them all consistently
+when their **aspect ratios agree**.
+
+VisionCamera's built-in preview chooses its own resolution. That is fine when
+the preview is all you show, but as soon as another output is attached, the
+two can end up with different aspect ratios. The same sensor area is then
+cropped differently for each output, so the preview can show more to the user
+than your frame, photo or video can actually see (or the other way around).
+Frame-based results are still correct, but they only cover part of what the
+user is looking at.
+
+This library gives the preview the power to choose. You pass a
+`targetResolution` that matches your other outputs, and the preview is
+negotiated with the session at that aspect ratio. The preview, the frame and
+the capture then cover the same field of view, so what the user sees is
+what your frame and video can see.
+
+### Why this matters most on Android
+
+On Android, CameraX picks a default aspect ratio per use case, and they do not
+agree with each other:
+
+- Image capture and image analysis (the frame output) default to **4:3**
+  ([CameraX configuration docs](https://developer.android.com/media/camera/camerax/configuration#resolution)).
+- Video usually resolves to **16:9**.
+- The stock preview stays fixed at **4:3**, so you cannot change it.
+
+With the stock preview, a 16:9 video and a 4:3 preview show different areas of
+the sensor, and the preview cannot be moved to match them. Because this
+library lets you choose the preview's `targetResolution`, you can align the
+preview with the frame and video outputs instead: set the preview to the same
+aspect ratio as the output you care about.
+
+iOS is less affected. There, every output is derived from the active format
+selected on the capture device, so the outputs are already aligned. The custom
+preview output keeps that behavior, and adds the same control on Android.
+
+### Knowing the exact preview size for layout
+
+`onConfigurationChanged` reports the negotiated stream resolution and the
+rotation needed to display it upright. `getUprightPreviewResolution()` applies
+the rotation for you, so you get the size as the user sees it:
+
+```tsx
+const [configuration, setConfiguration] =
+  useState<BetterPreviewConfiguration>();
+const previewOutput = useMemo(
+  () => createPreviewOutput({ onConfigurationChanged: setConfiguration }),
+  []
+);
+
+const resolution = getUprightPreviewResolution(configuration);
+const aspectRatio = resolution
+  ? resolution.width / resolution.height
+  : undefined;
+
+// The preview is exactly this shape, so a wrapper with this aspect ratio can
+// hold the preview and the UI aligned to its edges (buttons, guides, overlays).
+<View style={{ aspectRatio, width: '100%' }}>
+  <NativePreviewView
+    previewOutput={previewOutput}
+    style={StyleSheet.absoluteFill}
+  />
+  <Button style={{ position: 'absolute', bottom: 0, right: 0 }} />
+</View>;
+```
+
+Without this information you have to guess the preview's aspect ratio, and UI
+placed relative to the preview edges drifts when the device picks a different
+resolution or rotates.
+
+### Seeing it in the example app
+
+The example draws the four corners of the **frame output** as red dots on the
+preview. If the preview and the frame cover the same area, the dots sit on the
+corners of the preview. If they do not, the dots drift away from the edges.
+
+| Standard preview                                                                       | Better Preview, mismatched                                                                                                   | Better Preview, matched                                                                     |
+| -------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| ![Standard preview](./docs/images/stock-preview.png)                                   | ![Mismatched](./docs/images/better-preview-mismatched.png)                                                                   | ![Matched](./docs/images/better-preview-matched.png)                                        |
+| The stock preview picks its own size, so the 16:9 frame corners land inside the image. | Preview at `FHD_4_3` (1080 × 1440) with a `HD_16_9` frame: the 4:3 preview shows more than the frame, so the dots are inset. | Preview and frame both `HD_16_9` (720 × 1280): the dots sit exactly on the preview corners. |
+
+In the example app you can change the preview and frame resolutions with the
+buttons at the top and watch the dots move.
+
 ## Current status
 
 The custom preview output is implemented on iOS and Android. The repository
@@ -13,7 +113,7 @@ provides:
 - a native preview output backed by `AVCaptureVideoPreviewLayer` on iOS and
   CameraX `Preview` on Android;
 - preview resolution and rotation updates through a JavaScript callback;
-- a React Native 0.85 example app with camera permissions configured;
+- a React Native 0.86 example app with camera permissions configured;
 - a standard VisionCamera preview to verify the development environment;
 - Nitrogen, TypeScript, ESLint, and library build scripts.
 
