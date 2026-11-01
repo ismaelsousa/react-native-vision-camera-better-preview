@@ -14,8 +14,7 @@ final class BetterPreviewOutput: HybridCameraPreviewOutputSpec,
   let previewLayer = AVCaptureVideoPreviewLayer()
   let streamType: StreamType = .video
 
-  private let onConfigurationChanged:
-    ((_ configuration: BetterPreviewConfiguration) -> Void)?
+  private let options: BetterPreviewOutputOptions
   private var currentConfiguration: BetterPreviewConfiguration?
   private var rotationCoordinator: NSObject?
   private var rotationObserver: NSKeyValueObservation?
@@ -33,6 +32,15 @@ final class BetterPreviewOutput: HybridCameraPreviewOutputSpec,
   }
 
   var targetResolution: ResolutionRule {
+    if let targetResolution = options.targetResolution {
+      return .closestTo(
+        CameraSize(
+          width: targetResolution.width,
+          height: targetResolution.height
+        )
+      )
+    }
+
     let screenSize = UIScreen.main.bounds.size
     let scale = UIScreen.main.scale
     return .min(
@@ -44,7 +52,7 @@ final class BetterPreviewOutput: HybridCameraPreviewOutputSpec,
   }
 
   init(options: BetterPreviewOutputOptions) {
-    onConfigurationChanged = options.onConfigurationChanged
+    self.options = options
     previewLayer.videoGravity = .resizeAspectFill
     super.init()
   }
@@ -132,7 +140,7 @@ final class BetterPreviewOutput: HybridCameraPreviewOutputSpec,
     if configurationsMatch(currentConfiguration, configuration) { return }
 
     currentConfiguration = configuration
-    onConfigurationChanged?(configuration)
+    options.onConfigurationChanged?(configuration)
   }
 
   private func resolveInputResolution(

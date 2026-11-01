@@ -9,6 +9,13 @@ export interface BetterPreviewConfiguration {
 }
 
 export interface BetterPreviewOutputOptions {
+  /**
+   * The preferred preview resolution. The camera session negotiates this with
+   * the other outputs, so the resulting resolution may differ.
+   *
+   * When omitted, the platform's default preview resolution preference is used.
+   */
+  targetResolution?: Size;
   /** Called whenever the native preview resolution or rotation changes. */
   onConfigurationChanged?: (configuration: BetterPreviewConfiguration) => void;
 }

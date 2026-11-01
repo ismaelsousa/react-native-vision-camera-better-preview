@@ -28,6 +28,8 @@ import {
 } from 'react-native-vision-camera-better-preview';
 
 const previewOutput = createPreviewOutput({
+  // Optional: negotiated with the session's other camera outputs.
+  targetResolution: { width: 1920, height: 1080 },
   onConfigurationChanged: (configuration) => {
     const resolution = getUprightPreviewResolution(configuration);
 

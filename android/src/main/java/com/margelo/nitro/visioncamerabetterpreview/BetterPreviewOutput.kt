@@ -1,7 +1,9 @@
 package com.margelo.nitro.visioncamerabetterpreview
 
 import android.util.Log
+import android.util.Size as AndroidSize
 import androidx.camera.core.Preview
+import androidx.camera.core.resolutionselector.ResolutionSelector
 import com.margelo.nitro.camera.CameraOrientation
 import com.margelo.nitro.camera.HybridCameraPreviewOutputSpec
 import com.margelo.nitro.camera.MediaType
@@ -12,6 +14,7 @@ import com.margelo.nitro.camera.extensions.converters.fromMirrorMode
 import com.margelo.nitro.camera.extensions.converters.toMirrorMode
 import com.margelo.nitro.camera.extensions.converters.toSize
 import com.margelo.nitro.camera.extensions.surfaceRotation
+import com.margelo.nitro.camera.extensions.sortedByClosestTo
 import com.margelo.nitro.camera.hybrids.orientation.HybridInterfaceOrientationManager
 import com.margelo.nitro.camera.public.NativeCameraOutput
 import com.margelo.nitro.camera.public.NativePreviewOutput
@@ -61,6 +64,21 @@ class BetterPreviewOutput(
       Preview
         .Builder()
         .apply {
+          options.targetResolution?.let { targetResolution ->
+            val targetSize =
+              AndroidSize(
+                targetResolution.width.toInt(),
+                targetResolution.height.toInt(),
+              )
+            val resolutionSelector =
+              ResolutionSelector
+                .Builder()
+                .setResolutionFilter { sizes, _ ->
+                  sizes.sortedByClosestTo(targetSize)
+                }.build()
+            setResolutionSelector(resolutionSelector)
+          }
+
           setMirrorMode(mirrorMode.toMirrorMode())
           when (config.previewStabilizationMode) {
             TargetStabilizationMode.OFF -> setPreviewStabilizationEnabled(false)
