@@ -5,20 +5,42 @@ A Nitro Module workspace for building a custom native preview output for
 
 ## Current status
 
-The development environment is ready, but the custom preview output is not
-implemented yet. The repository currently provides:
+The custom preview output is implemented on iOS and Android. The repository
+provides:
 
 - a Swift/Kotlin Nitro Module library scaffold;
 - native dependencies on VisionCamera for iOS and Android;
+- a native preview output backed by `AVCaptureVideoPreviewLayer` on iOS and
+  CameraX `Preview` on Android;
+- preview resolution and rotation updates through a JavaScript callback;
 - a React Native 0.85 example app with camera permissions configured;
 - a standard VisionCamera preview to verify the development environment;
 - Nitrogen, TypeScript, ESLint, and library build scripts.
 
-The output factory is defined in
-`src/VisionCameraBetterPreviewFactory.nitro.ts`. Its `createPreviewOutput()`
-method already exposes the intended `CameraOutput` return type, while the native
-method currently throws an explicit not-implemented error. The next step is to
-add the native preview output implementations and return them from the factory.
+## Usage
+
+Create the native output once and subscribe to configuration changes:
+
+```tsx
+import {
+  createPreviewOutput,
+  getUprightPreviewResolution,
+} from 'react-native-vision-camera-better-preview';
+
+const previewOutput = createPreviewOutput({
+  onConfigurationChanged: (configuration) => {
+    const resolution = getUprightPreviewResolution(configuration);
+
+    console.log('Preview resolution:', resolution);
+    console.log('Preview rotation:', configuration.rotationDegrees);
+  },
+});
+```
+
+`createPreviewOutput()` returns VisionCamera's `CameraOutput`. The callback
+reports the native stream resolution and, when available, the rotation in
+degrees. `getUprightPreviewResolution()` swaps width and height for quarter-turn
+rotations so layout code can consume the displayed orientation directly.
 
 ## Development setup
 

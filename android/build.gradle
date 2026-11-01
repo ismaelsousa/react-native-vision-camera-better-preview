@@ -91,6 +91,7 @@ android {
 
 dependencies {
   implementation "com.facebook.react:react-android"
+  implementation "androidx.camera:camera-core:1.7.0-alpha03"
   implementation project(":react-native-nitro-modules")
   implementation project(":react-native-vision-camera")
 }

@@ -9,7 +9,7 @@ import com.margelo.nitro.camera.HybridCameraOutputSpec
 class VisionCameraBetterPreviewFactory : HybridVisionCameraBetterPreviewFactorySpec() {
   @DoNotStrip
   @Keep
-  override fun createPreviewOutput(): HybridCameraOutputSpec {
-    throw UnsupportedOperationException("Better Preview output is not implemented yet.")
+  override fun createPreviewOutput(options: BetterPreviewOutputOptions): HybridCameraOutputSpec {
+    return BetterPreviewOutput(options)
   }
 }
