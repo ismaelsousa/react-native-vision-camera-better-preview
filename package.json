@@ -43,6 +43,10 @@
   },
   "keywords": [
     "react-native",
+    "vision-camera",
+    "camera",
+    "preview",
+    "nitro-modules",
     "ios",
     "android"
   ],
@@ -50,7 +54,7 @@
     "type": "git",
     "url": "git+https://github.com/ismaelsousa/react-native-vision-camera-better-preview.git"
   },
-  "author": "Ismael Sousa <you@example.com> (https://github.com/ismaelsousa)",
+  "author": "Ismael Sousa",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/ismaelsousa/react-native-vision-camera-better-preview/issues"
@@ -76,14 +80,18 @@
     "react": "19.2.3",
     "react-native": "0.85.3",
     "react-native-builder-bob": "^0.44.1",
+    "react-native-nitro-image": "0.15.2",
     "react-native-nitro-modules": "^0.37.1",
+    "react-native-vision-camera": "5.2.4",
     "turbo": "^2.11.10",
     "typescript": "^6.0.3"
   },
   "peerDependencies": {
     "react": "*",
     "react-native": "*",
-    "react-native-nitro-modules": "^0.37.1"
+    "react-native-nitro-image": "*",
+    "react-native-nitro-modules": "^0.37.1",
+    "react-native-vision-camera": ">=5.2.4"
   },
   "workspaces": [
     "example"

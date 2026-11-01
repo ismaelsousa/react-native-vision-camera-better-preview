@@ -1,34 +1,62 @@
 # react-native-vision-camera-better-preview
 
-A custom native preview output for React Native VisionCamera
+A Nitro Module workspace for building a custom native preview output for
+[React Native VisionCamera](https://visioncamera.margelo.com/).
 
-## Installation
+## Current status
 
+The development environment is ready, but the custom preview output is not
+implemented yet. The repository currently provides:
+
+- a Swift/Kotlin Nitro Module library scaffold;
+- native dependencies on VisionCamera for iOS and Android;
+- a React Native 0.85 example app with camera permissions configured;
+- a standard VisionCamera preview to verify the development environment;
+- Nitrogen, TypeScript, ESLint, and library build scripts.
+
+The next implementation step is to define the output factory in
+`src/VisionCameraBetterPreview.nitro.ts`, generate the native bindings, and add
+the native preview output implementations.
+
+## Development setup
+
+Install all workspace dependencies:
 
 ```sh
-npm install react-native-vision-camera-better-preview react-native-nitro-modules
+yarn
 ```
 
-> `react-native-nitro-modules` is required as this library relies on [Nitro Modules](https://nitro.margelo.com/).
+Generate Nitro bindings after changing any `*.nitro.ts` file:
 
-
-## Usage
-
-
-```js
-import { multiply } from 'react-native-vision-camera-better-preview';
-
-// ...
-
-const result = multiply(3, 7);
+```sh
+yarn nitrogen
 ```
 
+Install iOS pods:
 
-## Contributing
+```sh
+yarn example pod-install
+```
 
-- [Development workflow](CONTRIBUTING.md#development-workflow)
-- [Sending a pull request](CONTRIBUTING.md#sending-a-pull-request)
-- [Code of conduct](CODE_OF_CONDUCT.md)
+Run the example app:
+
+```sh
+yarn example ios
+yarn example android
+```
+
+Run project checks:
+
+```sh
+yarn typecheck
+yarn lint
+yarn prepare
+```
+
+## Architecture references
+
+- [VisionCamera custom native CameraOutputs](https://visioncamera.margelo.com/docs/custom-native-camera-outputs)
+- [How to build a Nitro Module](https://nitro.margelo.com/docs/getting-started/how-to-build-a-nitro-module)
 
 ## License
 
@@ -36,4 +64,4 @@ MIT
 
 ---
 
-Made with [create-react-native-library](https://github.com/callstack/react-native-builder-bob)
+Made with [create-react-native-library](https://github.com/callstack/react-native-builder-bob).

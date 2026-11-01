@@ -1,1 +1,1 @@
-export { multiply } from './multiply';
+export type { VisionCameraBetterPreview } from './VisionCameraBetterPreview.nitro';
