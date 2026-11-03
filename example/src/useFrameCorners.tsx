@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import { StyleSheet, View, useWindowDimensions } from 'react-native';
 import {
   CommonResolutions,
   type CameraFrameOutput,
@@ -129,13 +129,7 @@ export function useFrameCorners(
   };
 }
 
-function formatPoint(point: Point) {
-  return `(${point.x.toFixed(2)}, ${point.y.toFixed(2)})`;
-}
-
 export function FrameCornersInfo({
-  frameSize,
-  cameraCorners,
   viewCorners,
 }: Pick<UseFrameCornersResult, 'frameSize' | 'cameraCorners' | 'viewCorners'>) {
   const dots = viewCorners ? Object.values(viewCorners) : [];
