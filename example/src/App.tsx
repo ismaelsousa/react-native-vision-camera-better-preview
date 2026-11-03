@@ -2,6 +2,7 @@ import { useMemo, useRef, useState, type ReactNode } from 'react';
 import {
   FlatList,
   Modal,
+  Platform,
   Pressable,
   StyleSheet,
   Text,
@@ -23,9 +24,10 @@ import {
   type CameraRef,
 } from 'react-native-vision-camera-better-preview';
 
+import { AspectRatioContentLayout } from './AspectRatioContentLayout';
 import { FrameCornersInfo, useFrameCorners } from './useFrameCorners';
 
-type Route = 'home' | 'vision-camera' | 'better-preview';
+type Route = 'home' | 'vision-camera' | 'better-preview' | 'responsive-preview';
 
 const resolutionOptions = Object.entries(CommonResolutions).map(
   ([label, size]) => ({ label, size })
@@ -266,7 +268,99 @@ function BetterPreviewScreen({ device, onBack }: PreviewScreenProps) {
   );
 }
 
-function RoutePicker({ onSelect }: { onSelect: (route: Route) => void }) {
+function ResponsivePreviewScreen({ device, onBack }: PreviewScreenProps) {
+  const previewResolution = useResolutionOption('FHD_4_3');
+  const [resolvedPreviewSize, setResolvedPreviewSize] = useState<Size>();
+  const [compactSpace, setCompactSpace] = useState(false);
+  const [triggerActive, setTriggerActive] = useState(false);
+  const previewOption = previewResolution.option;
+  const displayedSize = resolvedPreviewSize ?? previewOption.size;
+  const aspectRatio = displayedSize.width / displayedSize.height;
+
+  return (
+    <SafeAreaView style={styles.responsivePreviewScreen}>
+      <View
+        style={[
+          styles.responsiveDemoArea,
+          compactSpace && styles.responsiveDemoAreaCompact,
+        ]}
+      >
+        <AspectRatioContentLayout
+          aspectRatio={aspectRatio}
+          frameStyle={styles.responsivePreviewFrame}
+          top={
+            <View style={styles.responsiveTopSlot}>
+              <Pressable
+                accessibilityLabel="Close preview"
+                style={styles.closeButton}
+                onPress={onBack}
+              >
+                <Text style={styles.closeButtonText}>×</Text>
+              </Pressable>
+              <View style={styles.responsiveTopActions}>
+                <ControlButton
+                  label={`Preview: ${previewOption.label}`}
+                  onPress={() => previewResolution.setVisible(true)}
+                />
+                <ControlButton
+                  label={compactSpace ? 'Use full space' : 'Reduce space'}
+                  onPress={() => setCompactSpace((value) => !value)}
+                />
+              </View>
+            </View>
+          }
+          bottom={
+            <View style={styles.responsiveBottomSlot}>
+              <Text style={styles.responsiveResolutionLabel}>
+                {displayedSize.width} × {displayedSize.height}
+              </Text>
+              <Pressable
+                accessibilityLabel="Camera trigger"
+                style={styles.triggerButton}
+                onPress={() => setTriggerActive((value) => !value)}
+              >
+                <View
+                  style={[
+                    styles.triggerButtonInner,
+                    triggerActive && styles.triggerButtonInnerActive,
+                  ]}
+                />
+              </Pressable>
+            </View>
+          }
+        >
+          <BetterPreviewCamera
+            device={device}
+            isActive
+            previewTargetResolution={previewOption.size}
+            onPreviewResolution={setResolvedPreviewSize}
+            style={StyleSheet.absoluteFill}
+            resizeMode="cover"
+          />
+        </AspectRatioContentLayout>
+      </View>
+
+      <ResolutionModal
+        title="Preview resolution"
+        visible={previewResolution.visible}
+        selected={previewOption.label}
+        onSelect={(label) => {
+          setResolvedPreviewSize(undefined);
+          previewResolution.setLabel(label);
+        }}
+        onClose={() => previewResolution.setVisible(false)}
+      />
+    </SafeAreaView>
+  );
+}
+
+function RoutePicker({
+  onSelect,
+  responsivePreviewSupported,
+}: {
+  onSelect: (route: Route) => void;
+  responsivePreviewSupported: boolean;
+}) {
   return (
     <View style={styles.menuContainer}>
       <Text style={styles.eyebrow}>EXAMPLE APP</Text>
@@ -295,6 +389,22 @@ function RoutePicker({ onSelect }: { onSelect: (route: Route) => void }) {
           Uses the custom native output with a preferred 1920 × 1080 resolution.
         </Text>
       </Pressable>
+
+      <Pressable
+        disabled={!responsivePreviewSupported}
+        style={[
+          styles.routeCard,
+          !responsivePreviewSupported && styles.routeCardDisabled,
+        ]}
+        onPress={() => onSelect('responsive-preview')}
+      >
+        <Text style={styles.routeTitle}>Responsive preview layout</Text>
+        <Text style={styles.routeDescription}>
+          {responsivePreviewSupported
+            ? 'Change preview resolution and available space to see the close and trigger controls move with the camera frame.'
+            : 'Requires iOS 17 or newer.'}
+        </Text>
+      </Pressable>
     </View>
   );
 }
@@ -302,6 +412,9 @@ function RoutePicker({ onSelect }: { onSelect: (route: Route) => void }) {
 function AppContent() {
   const [route, setRoute] = useState<Route>('home');
   const device = useCameraDevice('back');
+  const iosMajorVersion = Number.parseInt(String(Platform.Version), 10);
+  const responsivePreviewSupported =
+    Platform.OS !== 'ios' || iosMajorVersion >= 17;
   const { hasPermission, canRequestPermission, requestPermission } =
     useCameraPermission();
 
@@ -351,7 +464,21 @@ function AppContent() {
     );
   }
 
-  return <RoutePicker onSelect={setRoute} />;
+  if (route === 'responsive-preview' && responsivePreviewSupported) {
+    return (
+      <ResponsivePreviewScreen
+        device={device}
+        onBack={() => setRoute('home')}
+      />
+    );
+  }
+
+  return (
+    <RoutePicker
+      onSelect={setRoute}
+      responsivePreviewSupported={responsivePreviewSupported}
+    />
+  );
 }
 
 export default function App() {
@@ -416,6 +543,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#1a1c21',
     padding: 20,
     gap: 7,
+  },
+  routeCardDisabled: {
+    opacity: 0.45,
   },
   routeTitle: {
     color: '#ffffff',
@@ -520,5 +650,82 @@ const styles = StyleSheet.create({
     color: '#c5c7ce',
     fontSize: 14,
     marginTop: 4,
+  },
+  responsivePreviewScreen: {
+    flex: 1,
+    justifyContent: 'center',
+    backgroundColor: '#101114',
+  },
+  responsiveDemoArea: {
+    flex: 1,
+  },
+  responsiveDemoAreaCompact: {
+    flex: 0,
+    height: '62%',
+  },
+  responsivePreviewFrame: {
+    backgroundColor: '#050505',
+  },
+  responsiveTopSlot: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+    padding: 12,
+  },
+  responsiveTopActions: {
+    flex: 1,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'flex-end',
+    gap: 8,
+  },
+  closeButton: {
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 22,
+    backgroundColor: 'rgba(10, 10, 12, 0.78)',
+  },
+  closeButtonText: {
+    color: '#ffffff',
+    fontSize: 30,
+    lineHeight: 32,
+    fontWeight: '300',
+  },
+  responsiveBottomSlot: {
+    alignItems: 'center',
+    gap: 8,
+    padding: 12,
+  },
+  responsiveResolutionLabel: {
+    color: '#ffffff',
+    fontSize: 12,
+    fontWeight: '700',
+    borderRadius: 999,
+    backgroundColor: 'rgba(10, 10, 12, 0.78)',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+  },
+  triggerButton: {
+    width: 72,
+    height: 72,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 4,
+    borderColor: '#ffffff',
+    borderRadius: 36,
+    backgroundColor: 'rgba(10, 10, 12, 0.35)',
+  },
+  triggerButtonInner: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#ffffff',
+  },
+  triggerButtonInnerActive: {
+    backgroundColor: '#ff3b30',
+    transform: [{ scale: 0.78 }],
   },
 });
