@@ -126,12 +126,46 @@ provides:
 - native dependencies on VisionCamera for iOS and Android;
 - a native preview output backed by `AVCaptureVideoPreviewLayer` on iOS and
   CameraX `Preview` on Android;
+- a drop-in `Camera` component with preview target-resolution and resolution
+  callbacks;
 - preview resolution and rotation updates through a JavaScript callback;
 - a React Native 0.86 example app with camera permissions configured;
 - a standard VisionCamera preview to verify the development environment;
 - Nitrogen, TypeScript, ESLint, and library build scripts.
 
 ## Usage
+
+### Camera component
+
+Import `Camera` from this package as a drop-in replacement for VisionCamera's
+component. It accepts the same props and ref, plus the preview configuration
+props introduced by this library:
+
+```tsx
+import { Camera } from 'react-native-vision-camera-better-preview';
+
+<Camera
+  ref={camera}
+  device={device}
+  isActive
+  outputs={outputs}
+  style={StyleSheet.absoluteFill}
+  previewTargetResolution={{ width: 1920, height: 1080 }}
+  onPreviewResolution={({ width, height }) => {
+    console.log('Upright preview:', width, height);
+  }}
+  onPreviewConfigurationChanged={(configuration) => {
+    console.log('Native preview configuration:', configuration);
+  }}
+/>;
+```
+
+`onPreviewResolution` receives dimensions after applying the display rotation,
+so they are ready for upright layout calculations. On iOS it is available on
+iOS 17 and newer; `onPreviewConfigurationChanged` still reports the native
+resolution on earlier versions, with `rotationDegrees` left undefined.
+
+### Imperative preview output
 
 Create the native output once and subscribe to configuration changes:
 

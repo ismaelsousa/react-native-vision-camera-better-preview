@@ -8,24 +8,19 @@ import {
   View,
 } from 'react-native';
 import {
-  Camera,
+  Camera as VisionCamera,
   CommonResolutions,
-  NativePreviewView,
-  useCamera,
   useCameraDevice,
   useCameraPermission,
   type CameraDevice,
-  type CameraPreviewOutput,
-  type CameraRef,
   type Size,
-  type PreviewView,
 } from 'react-native-vision-camera';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
-import { callback } from 'react-native-nitro-modules';
 import {
-  createPreviewOutput,
+  Camera as BetterPreviewCamera,
   getUprightPreviewResolution,
   type BetterPreviewConfiguration,
+  type CameraRef,
 } from 'react-native-vision-camera-better-preview';
 
 import { FrameCornersInfo, useFrameCorners } from './useFrameCorners';
@@ -173,7 +168,7 @@ function VisionCameraPreviewScreen({ device, onBack }: PreviewScreenProps) {
         </>
       }
     >
-      <Camera
+      <VisionCamera
         ref={camera}
         device={device}
         isActive
@@ -196,38 +191,18 @@ function VisionCameraPreviewScreen({ device, onBack }: PreviewScreenProps) {
 }
 
 function BetterPreviewScreen({ device, onBack }: PreviewScreenProps) {
+  const camera = useRef<CameraRef>(null);
   const [configuration, setConfiguration] =
     useState<BetterPreviewConfiguration>();
   const previewResolution = useResolutionOption('FHD_4_3');
   const frameResolution = useResolutionOption('HD_16_9');
   const [frameProcessorEnabled, setFrameProcessorEnabled] = useState(true);
   const previewOption = previewResolution.option;
-  const previewOutput = useMemo(
-    () =>
-      createPreviewOutput({
-        targetResolution: previewOption.size,
-        onConfigurationChanged: setConfiguration,
-      }) as CameraPreviewOutput,
-    [previewOption]
-  );
   const corners = useFrameCorners(frameResolution.option.size, configuration);
   const outputs = useMemo(
-    () =>
-      frameProcessorEnabled
-        ? [previewOutput, corners.frameOutput]
-        : [previewOutput],
-    [previewOutput, corners.frameOutput, frameProcessorEnabled]
+    () => (frameProcessorEnabled ? [corners.frameOutput] : []),
+    [corners.frameOutput, frameProcessorEnabled]
   );
-  const setPreviewRef = useMemo(
-    () =>
-      callback((preview: PreviewView) => {
-        corners.setPreview(preview);
-      }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [corners.setPreview]
-  );
-
-  useCamera({ device, isActive: true, outputs });
 
   const uprightResolution = getUprightPreviewResolution(configuration);
   const resolutionLabel =
@@ -257,11 +232,16 @@ function BetterPreviewScreen({ device, onBack }: PreviewScreenProps) {
         </>
       }
     >
-      <NativePreviewView
-        previewOutput={previewOutput}
+      <BetterPreviewCamera
+        ref={camera}
+        device={device}
+        isActive
+        outputs={outputs}
+        previewTargetResolution={previewOption.size}
+        onPreviewConfigurationChanged={setConfiguration}
         style={StyleSheet.absoluteFill}
         resizeMode="contain"
-        hybridRef={setPreviewRef}
+        onPreviewStarted={() => corners.setPreview(camera.current?.preview)}
         onLayout={corners.refresh}
       />
       {frameProcessorEnabled && <FrameCornersInfo {...corners} />}

@@ -1,3 +1,5 @@
+export { Camera } from './Camera';
+export type { CameraRef, CameraViewProps } from './Camera';
 export { createPreviewOutput } from './previewOutput';
 export {
   getUprightPreviewAspectRatio,

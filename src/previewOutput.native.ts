@@ -1,5 +1,5 @@
 import { NitroModules } from 'react-native-nitro-modules';
-import type { CameraOutput } from 'react-native-vision-camera';
+import type { CameraPreviewOutput } from 'react-native-vision-camera';
 import type {
   BetterPreviewOutputOptions,
   VisionCameraBetterPreviewFactory,
@@ -12,6 +12,6 @@ const factory =
 
 export function createPreviewOutput(
   options: BetterPreviewOutputOptions = {}
-): CameraOutput {
-  return factory.createPreviewOutput(options);
+): CameraPreviewOutput {
+  return factory.createPreviewOutput(options) as CameraPreviewOutput;
 }
