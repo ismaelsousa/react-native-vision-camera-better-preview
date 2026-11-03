@@ -16,7 +16,11 @@ import {
   type CameraDevice,
   type Size,
 } from 'react-native-vision-camera';
-import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import {
+  SafeAreaProvider,
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 import {
   Camera as BetterPreviewCamera,
   getUprightPreviewResolution,
@@ -269,6 +273,7 @@ function BetterPreviewScreen({ device, onBack }: PreviewScreenProps) {
 }
 
 function ResponsivePreviewScreen({ device, onBack }: PreviewScreenProps) {
+  const insets = useSafeAreaInsets();
   const previewResolution = useResolutionOption('FHD_4_3');
   const [resolvedPreviewSize, setResolvedPreviewSize] = useState<Size>();
   const [compactSpace, setCompactSpace] = useState(false);
@@ -278,7 +283,17 @@ function ResponsivePreviewScreen({ device, onBack }: PreviewScreenProps) {
   const aspectRatio = displayedSize.width / displayedSize.height;
 
   return (
-    <SafeAreaView style={styles.responsivePreviewScreen}>
+    <View
+      style={[
+        styles.responsivePreviewScreen,
+        {
+          paddingTop: insets.top,
+          paddingRight: insets.right,
+          paddingBottom: insets.bottom,
+          paddingLeft: insets.left,
+        },
+      ]}
+    >
       <View
         style={[
           styles.responsiveDemoArea,
@@ -350,7 +365,7 @@ function ResponsivePreviewScreen({ device, onBack }: PreviewScreenProps) {
         }}
         onClose={() => previewResolution.setVisible(false)}
       />
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -658,6 +673,7 @@ const styles = StyleSheet.create({
   },
   responsiveDemoArea: {
     flex: 1,
+    overflow: 'hidden',
   },
   responsiveDemoAreaCompact: {
     flex: 0,
