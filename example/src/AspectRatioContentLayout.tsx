@@ -1,4 +1,4 @@
-import React, { type ReactNode, useCallback, useMemo, useState } from 'react';
+import { type ReactNode, useCallback, useMemo, useState } from 'react';
 import {
   type LayoutChangeEvent,
   type StyleProp,
