@@ -117,6 +117,21 @@ corners of the preview. If they do not, the dots drift away from the edges.
 In the example app you can change the preview and frame resolutions with the
 buttons at the top and watch the dots move.
 
+### Full control over the preview layout
+
+The responsive preview example uses the actual upright dimensions reported by
+`onPreviewResolution` to size the camera frame. The close button and camera
+trigger are then positioned relative to that frame instead of the full screen.
+
+When the selected preview resolution changes, the frame follows its real aspect
+ratio. When the available space changes, the controls can move from the space
+around the preview to an overlay inside it while remaining aligned with its
+edges. The same geometry can drive guides, crop regions, focus indicators,
+capture controls, or any other preview-bound UI, giving the application full
+control over how the camera and its controls are composed.
+
+![Responsive preview controls following the real camera frame](./docs/videos/responsive-preview-layout.gif)
+
 ## Current status
 
 The custom preview output is implemented on iOS and Android. The repository
