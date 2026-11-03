@@ -57,23 +57,49 @@ also sets `automaticallyConfiguresOutputBufferDimensions` to `false` on its
 frame outputs, so the frame buffers keep the dimensions of the active format
 instead of being resized automatically.
 
-With the stock `Camera` component on iOS, the output target resolutions are
-used to filter the available formats and pick the active one. You can therefore
-leave the target resolution out, or steer the choice with a `resolutionBias`
-constraint. Android ignores `resolutionBias`, which is why the preview cannot
-be steered there without this library.
+With the stock `Camera` component on iOS, output target resolutions help filter
+the available formats and select the active one. A `resolutionBias` constraint
+can steer that selection, so the preview normally does not need its own target
+resolution on iOS. If you do want to provide a preview target explicitly, that
+works on iOS versions earlier than 17 as well—the iOS 17 requirement applies
+only to obtaining the preview orientation and upright dimensions.
 
-The custom preview output keeps the iOS behavior and adds the same control on
-Android.
+Android behaves differently. `resolutionBias` is not taken into account when
+CameraX resolves the Preview use case, and the stock preview does not accept a
+target resolution. This is why the custom target matters primarily on Android.
+The custom preview output preserves the active-format behavior on iOS while
+adding direct preview-resolution control on Android.
+
+> [!IMPORTANT]
+> On Android, give `previewTargetResolution` the same target resolution as the
+> video or frame output that must match the preview. At minimum, their aspect
+> ratios should be the same. The final negotiated dimensions can still differ,
+> but matching targets keeps the preview and captured output aligned to the same
+> sensor crop.
 
 ### Knowing the exact preview size for layout
 
 `onConfigurationChanged` reports the negotiated stream resolution and, when
-available, the rotation needed to display it upright. On iOS, rotation is only
-reported on iOS 17 and later; on earlier iOS versions `rotationDegrees` is
-`undefined`. `getUprightPreviewResolution()` applies the reported rotation for
-you, so you get the size as the user sees it when rotation is available. If the
-rotation is unavailable, the helper returns `undefined` rather than guessing:
+available, the rotation needed to display it upright. The native resolution is
+in the camera sensor's unrotated orientation, so its width and height are not
+always ready to use directly for upright layout.
+
+On iOS, this library obtains preview orientation from
+`AVCaptureDevice.RotationCoordinator`, which requires iOS 17 or newer. On
+earlier iOS versions, `onConfigurationChanged` still reports the native,
+unrotated resolution, but `rotationDegrees` is `undefined`. Because the upright
+orientation cannot be determined safely, `onPreviewResolution` is not called
+and an upright aspect ratio cannot be derived. Android reports the preview
+rotation out of the box on all supported versions.
+
+> [!NOTE]
+> Setting `previewTargetResolution` does not require iOS 17. Target-resolution
+> selection works on Android and earlier iOS versions. iOS 17 is required only
+> for the upright-resolution callback and orientation-aware aspect ratio.
+
+`getUprightPreviewResolution()` applies the reported rotation for you, so you
+get the size as the user sees it when rotation is available. If the rotation is
+unavailable, the helper returns `undefined` rather than guessing:
 
 ```tsx
 const [configuration, setConfiguration] =
@@ -176,9 +202,27 @@ import { Camera } from 'react-native-vision-camera-better-preview';
 ```
 
 `onPreviewResolution` receives dimensions after applying the display rotation,
-so they are ready for upright layout calculations. On iOS it is available on
-iOS 17 and newer; `onPreviewConfigurationChanged` still reports the native
-resolution on earlier versions, with `rotationDegrees` left undefined.
+so they are ready for upright layout calculations. On iOS, this callback is
+available on iOS 17 and newer and is not called on earlier versions because the
+required orientation is unavailable. `onPreviewConfigurationChanged` still
+reports the native resolution on earlier iOS versions, with `rotationDegrees`
+left undefined. This limitation does not prevent `previewTargetResolution`
+from configuring the preview on those versions.
+
+On Android, set `previewTargetResolution` to the same target used by the video
+or frame output you want the preview to match:
+
+```tsx
+const targetResolution = { width: 1080, height: 1920 };
+const videoOutput = useVideoOutput({ targetResolution });
+
+<Camera
+  device={device}
+  isActive
+  outputs={[videoOutput]}
+  previewTargetResolution={targetResolution}
+/>
+```
 
 ### Imperative preview output
 
