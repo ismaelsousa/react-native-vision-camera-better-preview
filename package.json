@@ -39,7 +39,13 @@
     "prepare": "bob build",
     "nitrogen": "nitrogen",
     "typecheck": "tsc",
-    "lint": "eslint \"**/*.{js,ts,tsx}\""
+    "lint": "eslint \"**/*.{js,ts,tsx}\"",
+    "release:login": "yarn npm login --publish",
+    "release:check": "yarn typecheck && yarn lint && yarn prepare && yarn pack --dry-run",
+    "release:publish": "yarn release:check && yarn npm publish --access public",
+    "release:patch": "yarn version patch && yarn release:publish",
+    "release:minor": "yarn version minor && yarn release:publish",
+    "release:major": "yarn version major && yarn release:publish"
   },
   "keywords": [
     "react-native",
